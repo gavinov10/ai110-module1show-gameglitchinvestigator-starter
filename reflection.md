@@ -5,35 +5,75 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 ## 1. What was broken when you started?
 
 - What did the game look like the first time you ran it?
+  the game looked like it was ready, finalized
 - List at least two concrete bugs you noticed at the start  
   (for example: "the hints were backwards").
-
+  1. the hints were telling us to go backwords
+  2. instead of getting 8 attempts you actually get 9 attempts becuase the start is at 0
+  3. score doesn't reset when you click new game
+  4. when new game is clicked, the message: "Game over. Start a new game to try again."
+      doesn't go away
+  5. when I enter a non-numeric input, it still adds to the "attempts left" and actually passes the number as well
 **Bug Reproduction Log**
 
 Document at least 3 bugs you found. Add rows as needed.
 
 | Input | Expected Behavior | Actual Behavior | Console Output / Error |
 |-------|-------------------|-----------------|------------------------|
-| | | | |
-| | | | |
-| | | | |
+| guess of 60  | "too high"(hint) | "too low" (hint) | none
+| string  | stays in the same attemps | decreases the attempts still | none
+| new game --> clicked | message "Game over. Start a new game to try again." should go away | message stays and no functionality when starting new game| none
 
 ---
 
 ## 2. How did you use AI as a teammate?
 
-- Which AI tools did you use on this project (for example: ChatGPT, Gemini, Copilot)?
-- Give one example of an AI suggestion that was correct (including what the AI suggested and how you verified the result).
-- Give one example of an AI suggestion that was incorrect or misleading (including what the AI suggested and how you verified the result).
+- **Which AI tools did you use on this project?**
+  I used Claude Code (agent mode) inside VS Code as my pair-programmer. I drove the
+  decisions and scope; the AI explained logic, made edits I reviewed, and ran the tests.
+
+- **A correct AI suggestion (and how I verified it).**
+  When I described the backwards hints, the AI traced a concrete example (secret = 10,
+  guess = 7) and showed that `check_guess` returned the right *outcome* ("Too Low") but
+  the wrong *message* ("Go LOWER") — the hint text was simply swapped. It suggested
+  flipping the two messages so the arrow points toward the secret. I verified this two
+  ways: I replayed it in the running game (guessing 7 against 10 now says "Go HIGHER"),
+  and I added pytest cases that assert on the message text. All passed.
+
+- **An incorrect / misleading AI suggestion (and how I verified it).**
+  The starter project already contained AI-generated scaffold tests that imported
+  `check_guess` from `logic_utils` and asserted `result == "Win"`. That was misleading on
+  two counts: `logic_utils` was still an unimplemented stub, and the function actually
+  returns a `(outcome, message)` tuple, not a bare string — so the assertion could never
+  be true. I caught this by running the full suite (it raised `NotImplementedError` /
+  failed the comparison), then fixed it by implementing `logic_utils`, repointing the
+  imports, and unpacking the tuple (`outcome, message = check_guess(...)`). Lesson:
+  AI-written tests can look authoritative but encode wrong assumptions — run them.
 
 ---
 
 ## 3. Debugging and testing your fixes
 
-- How did you decide whether a bug was really fixed?
-- Describe at least one test you ran (manual or using pytest)  
-  and what it showed you about your code.
-- Did AI help you design or understand any tests? How?
+- **How I decided a bug was really fixed.**
+  I treated "fixed" as needing two independent confirmations: the behavior had to change
+  in the actual running game, *and* an automated test had to pin it down so it can't
+  silently regress. For the hint bug, eyeballing the game wasn't enough because the
+  *outcome label* was already correct — only the user-facing message was wrong — so I
+  specifically tested the message string.
+
+- **A test I ran and what it showed.**
+  I ran `pytest tests/` (9 tests, all passing). The key ones assert that a too-high guess
+  contains "LOWER" and a too-low guess contains "HIGHER", plus a parametrized sweep over
+  edge cases like 99-vs-1. Writing these showed me that asserting only on the outcome
+  ("Too High") would have *passed even with the bug present* — the message-level assertion
+  is what actually guards the fix.
+
+- **Did AI help me design or understand the tests?**
+  Yes. The AI pointed out that the bug lived in the message text, not the outcome, so it
+  recommended asserting on the hint string and parametrizing several guess/secret pairs
+  instead of writing one example. It also flagged that importing from `app.py` drags in
+  Streamlit, which is why we moved the logic into `logic_utils.py` so tests stay fast and
+  import-clean.
 
 ---
 
