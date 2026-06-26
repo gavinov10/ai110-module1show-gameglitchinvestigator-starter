@@ -80,6 +80,10 @@ Document at least 3 bugs you found. Add rows as needed.
 ## 4. What did you learn about Streamlit and state?
 
 - How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
+  - Streamlit reruns: Everytime you interact with the page, the whole script runs from top to bottom. In contrast to other apps, they are kept running and only update "one thing" but in this game, everytime the user hits "Submit Guess" app.py runs from the top.
+  - Session State: This acts a little memory box that survives those reruns. So important components such as secret number, attempts, score, etc. are kept during that users session.
+  - I would say that streamlit is a tool for building web apps in Python and reruns is what reruns the entire script and session state is what keeps those values between reruns.
+  
 
 ---
 
